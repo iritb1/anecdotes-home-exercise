@@ -44,7 +44,9 @@ async def index(request: Request):
 @app.get("/evidence", response_class=HTMLResponse)
 async def evidence(request: Request):
      #axios.get("api/evidence",{evidence:[{},{},{} ...]})
-     evidence_payload = json.loads(await request.body())['evidences']
+     evidence_payload = json.loads(await request.body())['evidences'] #loads json from client
+     
+     
      # evidence_payload = [ {
      # 'evidence_id': 1, 
      # 'evidence_data': [{'login_name': 'anecdotes-exercise',
@@ -63,6 +65,7 @@ async def evidence(request: Request):
      #                     'security': {'mfa_enabled':True, 'mfa_enforced': True}}]
      #                     }
      #                     ]
+     
      new_config = {}
 
      #map config file
@@ -72,64 +75,54 @@ async def evidence(request: Request):
      data_list = []
      for evidence in evidence_payload:
           keys = evidence.keys()
-          dict = {'evidence_id': '', 'data':[]}
           for key in keys:
                if key in new_config:
-                    if 'type' in new_config[key] and new_config[key]['type'] == 'list':
+                    # if 'type' in new_config[key] and new_config[key]['type'] == 'list':
+                    #checking if val is id 
+                    evidance_id = evidence['evidence_id']
+
+                    if isinstance( evidence[key], list):
                          for evidence_data in evidence[key]:
-                              data = str(evidence_data).replace('{','')
-                              data = data.replace('}','')
-                              data = data.replace('\'','')
-                              data = data.split(',')
-
-                              for index in range(0,len(data)):
-                                   item = data[index].split(': ')
-                                   if len(item) == 2:
-                                        item.pop(0)
-                                        item = ':'.join(item)
-                                        data[index] = item
+                              data = []
+                              #creating value list
+                              for k,v in evidence_data.items():
+                                   if isinstance(v ,dict):
+                                        data = data + list(v.values()) #combine between lists
                                    else:
-                                        item.pop(0)
-                                        item.pop(0)
-                                        item = ':'.join(item)
-                                        data[index] = item
-                                        
-                              dict['data'].append(data)
+                                        data.append(v)
 
-                    elif new_config[key]['title'] == 'id':
-                         dict['evidence_id'] = evidence['evidence_id']
-                         data_list.append(dict)
-                              #creating html file with the animals:
+                              data.append(evidance_id)
+                              data_list.append(data)
+
                else:
                     print("key in not in map config")
 
-     text = '''
-     <html>
-     <header>
-          <table border=1 style='text-align:center'>
-          <tr>
-               <th>login_name</th>
-               <th>role</th>
-               <th>updated_at</th>
-               <th>id</th>
-               <th>email</th>
-               <th>first_name</th>
-               <th>last_name</th>
-               <th>mfa_enabled</th>
-               <th>mfa_enforced</th>
-          </tr>
-      '''
+
+     text = '''<html>
+               <header>
+               <table border=1 style='text-align:center'>
+               <tr>
+          '''
+
+     for header in config:
+          if header['title'] == 'evidence_data':
+               continue
+
+          if 'keys' in header:
+               for key in header['keys']:
+                    if key != 'security':
+                         text = text + f"""<th>{key}</th>"""
+          else:
+               text = text + f"""<th>{header['title']}</th>"""
+     text = text + "</tr>"
+          
 
      table = ""
-
-
-     for evidance_data in data_list:
-          for index in range(0,len(evidance_data['data'])):
-               sub_list = evidance_data['data'][index]
-               table = table + "<tr>"
-               for sub_index in range(0,len(sub_list)):
-                    table = table + f"""<td>{sub_list[sub_index]}</td>"""
-               table = table + "</tr>"
+     for sub_list in data_list:
+          table = table + "<tr>"
+          for item in sub_list:
+               table = table + f"""<td>{item}</td>"""
+          table = table + "</tr>"
 
      text = text + table + '</table> </header> </html>'
 
@@ -137,14 +130,14 @@ async def evidence(request: Request):
 
 
 
-@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=False)
+@app.get(app.swagger_ui_oauth2_redirect_url, include_in_schema=True)
 async def swagger_ui_redirect():
     return get_swagger_ui_oauth2_redirect_html()
 
 
 
 # Offline Serving of API Docs 
-@app.get("/docs", include_in_schema=False)
+@app.get("/docs", include_in_schema=True)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
         openapi_url=app.openapi_url,

@@ -1,12 +1,8 @@
 config = [
      {
-          'title': 'id',
-          'field': 'evidence_id'
-     },
-     {
           'title': 'evidence_data',
           'field': 'evidence_data',
-          'type' : 'list'
+          #'type' : 'list'
      },
      {
           'title': 'login_name',
@@ -19,15 +15,19 @@ config = [
      {
           'title': 'user_details',
           'field': 'user_details',
-          'type': 'dict',
-          'keys' : ['updated_at','id','email','first_name','anec','last_name','security'],#dict keys list
+          #'type': 'dict',
+          'keys' : ['updated_at','id','email','first_name','last_name','security'],#dict keys list
      },
     {
           'title': 'security',
           'field': 'security',
-          'type': 'dict',
+          #'type': 'dict',
           'keys' : ['mfa_enabled','mfa_enforced'],#dict keys list
-     }
+     },
+    {
+          'title': 'evidence_id',
+          'field': 'evidence_id'
+     },
 ]
 
 
